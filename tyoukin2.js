@@ -1,5 +1,8 @@
 (function() {
     'use strict';
+    const page = new URLSearchParams(location.search).get("page");
+
+    if (page !== "DBForm") return;
     const fldTotal = document.querySelector("#dz_fld505");
 
     const sh = document.querySelector('select[name="5135.Hour"]');
