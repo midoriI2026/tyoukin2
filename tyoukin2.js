@@ -2,7 +2,7 @@
     const VERSION = "v1.0";
     console.log("超勤2:", VERSION);
     'use strict';
-
+    if (!location.href.includes("page=DBForm")) return;
     const fldTotal = document.querySelector("#dz_fld505");
 
     const sh = document.querySelector('select[name="5135.Hour"]');
