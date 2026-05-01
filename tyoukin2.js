@@ -1,6 +1,4 @@
 (function() {
-    const VERSION = "v1.0";
-    console.log("超勤2:", VERSION);
     'use strict';
     if (!location.href.includes("page=DBForm")) return;
     const fldTotal = document.querySelector("#dz_fld505");
@@ -10,7 +8,7 @@
     const eh = document.querySelector('select[name="5136.Hour"]');
     const em = document.querySelector('select[name="5136.Minute"]');
 
-
+const isTimeCard = location.href.includes("TimeCardIndex");
 /********** ② 勤務時間（完全安定版・日付完全一致） **********/
 const btnTime = document.createElement("button");
 btnTime.textContent = " タイムカードアプリからタイムカード出勤・退勤に貼付け　　";
@@ -30,43 +28,40 @@ btnTime.onclick = async () => {
             return;
         }
 
-        // ===== 日付取得 =====
         const month = parseInt(document.querySelector('select[name="506.Month"]')?.value);
         const day   = parseInt(document.querySelector('select[name="506.Day"]')?.value);
+        // ===== 現在月チェック（追加） =====
+        const nowMonth = new Date().getMonth() + 1; // 0始まりなので+1
 
+        if (nowMonth !== month) {
+            alert(`月が一致しません（取得は当月のみ）\n命令月=${month}月　現在月=${nowMonth}月`);
+            return;
+        }
         if (!month || !day) {
             alert("日付取得失敗");
             return;
         }
 
-        console.log("対象日:", month, day);
-
-        // ===== 日付一致関数（これが核心）=====
         function isSameDay(text, month, day) {
 
-            // ① 4/21 形式
             const m1 = text.match(/(\d{1,2})\/(\d{1,2})/);
             if (m1) {
-                const m = parseInt(m1[1]);
-                const d = parseInt(m1[2]);
-                if (m === month && d === day) return true;
+                if (parseInt(m1[1]) === month && parseInt(m1[2]) === day) return true;
             }
 
-            // ② 21（金）形式
             const m2 = text.match(/(\d{1,2})（/);
             if (m2) {
-                const d = parseInt(m2[1]);
-                if (d === day) return true;
+                if (parseInt(m2[1]) === day) return true;
             }
 
             return false;
         }
 
-        // ===== タイムカード開く =====
+        // ===== リンク取得 =====
         let timeLink = null;
         document.querySelectorAll("a").forEach(a => {
             if (a.href && a.href.includes("TimeCardIndex")) {
-                timeLink = a;
+                timeLink = a.href;
             }
         });
 
@@ -75,21 +70,27 @@ btnTime.onclick = async () => {
             return;
         }
 
-        const tab = window.open(timeLink.href, "_blank");
-        await waitLoad(tab);
-        await sleep(2000); // 描画待ち（重要）
+        // ===== ★1画面化：fetch =====
+        const html1 = await fetch(timeLink, { credentials: "include" })
+            .then(r => r.text());
 
-        // ===== iframe対応 =====
-        let doc = tab.document;
+        let doc = new DOMParser().parseFromString(html1, "text/html");
+
+        // ===== iframeがある場合はさらにfetch =====
         const iframe = doc.querySelector("iframe");
-        if (iframe && iframe.contentDocument) {
-            doc = iframe.contentDocument;
+
+        if (iframe && iframe.src) {
+
+            const html2 = await fetch(iframe.src, { credentials: "include" })
+                .then(r => r.text());
+
+            doc = new DOMParser().parseFromString(html2, "text/html");
         }
 
         let start = null;
         let end = null;
 
-        // ===== ① テーブル優先 =====
+        // ===== テーブル解析 =====
         const rows = doc.querySelectorAll("tr");
 
         for (const row of rows) {
@@ -107,7 +108,7 @@ btnTime.onclick = async () => {
             }
         }
 
-        // ===== ② fallback（全テキスト）=====
+        // ===== fallback =====
         if (!start || !end) {
 
             const text = doc.body.innerText;
@@ -127,8 +128,6 @@ btnTime.onclick = async () => {
             }
         }
 
-        tab.close();
-
         if (!start || !end) {
             alert(`勤務時間取得失敗（対象日=${month}/${day}）`);
             return;
@@ -137,15 +136,17 @@ btnTime.onclick = async () => {
         setTime(sh, sm, start);
         setTime(eh, em, end);
 
-        alert(`勤務時間貼付完了\n対象日=${month}/${day}\n出勤=${start}\n退勤=${end}`);
+        alert(`勤務時間貼付完了（対象日=${month}/${day}）\n出勤=${start}\n退勤=${end}`);
 
     } catch (e) {
-        console.error("②エラー:", e);
-        alert("勤務時間処理でエラー");
+        console.error(e);
+        alert("勤務時間処理エラー");
     }
 };
-
-document.body.appendChild(btnTime);
+if (!isTimeCard) {
+    document.body.appendChild(btnTime);
+}
+/*document.body.appendChild(btnTime);*/
     /********** ③ 実績終了（修正済） **********/
     const btnEnd = document.createElement("button");
     btnEnd.textContent = "　　　タイムカード退勤を実績終了(時)(分)に貼付け　　";
@@ -436,6 +437,10 @@ document.body.appendChild(btnCheck);
         btn.onclick=()=>panel.remove();
 
         panel.appendChild(btn);
+        document.body.appendChild(panel);
+    }
+
+})();
         document.body.appendChild(panel);
     }
 
