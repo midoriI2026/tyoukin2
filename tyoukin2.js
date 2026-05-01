@@ -1,3 +1,11 @@
+// ==UserScript==
+// @name         ★超勤：タイムカード＆実績終了＆休憩チェック（完成版）
+// @namespace    http://tampermonkey.net/
+// @version      2.3
+// @match        https://midorinet-iwate.cybozu.com/o/ag.cgi?page=DBForm&did=150*
+// @run-at       document-end
+// ==/UserScript==
+
 (function() {
     'use strict';
     const fldTotal = document.querySelector("#dz_fld505");
@@ -8,8 +16,6 @@
     const em = document.querySelector('select[name="5136.Minute"]');
 
 const isTimeCard = location.href.includes("TimeCardIndex");
-const isDBRecord    = location.href.includes("page=DBRecord");
-const isDBTaskForm  = location.href.includes("page=DBTaskForm");
 /********** ② 勤務時間（完全安定版・日付完全一致） **********/
 const btnTime = document.createElement("button");
 btnTime.textContent = " タイムカードアプリからタイムカード出勤・退勤に貼付け　　";
@@ -144,7 +150,7 @@ btnTime.onclick = async () => {
         alert("勤務時間処理エラー");
     }
 };
-if (!isTimeCard && !isDBRecord && !isDBTaskForm) {
+if (!isTimeCard) {
     document.body.appendChild(btnTime);
 }
 /*document.body.appendChild(btnTime);*/
