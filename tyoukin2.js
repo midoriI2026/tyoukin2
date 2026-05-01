@@ -1,11 +1,3 @@
-// ==UserScript==
-// @name         ★超勤：タイムカード＆実績終了＆休憩チェック（完成版）
-// @namespace    http://tampermonkey.net/
-// @version      2.3
-// @match        https://midorinet-iwate.cybozu.com/o/ag.cgi?page=DBForm&did=150*
-// @run-at       document-end
-// ==/UserScript==
-
 (function() {
     'use strict';
     const fldTotal = document.querySelector("#dz_fld505");
