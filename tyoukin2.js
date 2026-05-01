@@ -1,6 +1,5 @@
 (function() {
     'use strict';
-    if (!location.href.includes("page=DBForm")) return;
     const fldTotal = document.querySelector("#dz_fld505");
 
     const sh = document.querySelector('select[name="5135.Hour"]');
@@ -9,6 +8,8 @@
     const em = document.querySelector('select[name="5136.Minute"]');
 
 const isTimeCard = location.href.includes("TimeCardIndex");
+const isDBRecord    = location.href.includes("page=DBRecord");
+const isDBTaskForm  = location.href.includes("page=DBTaskForm");
 /********** ② 勤務時間（完全安定版・日付完全一致） **********/
 const btnTime = document.createElement("button");
 btnTime.textContent = " タイムカードアプリからタイムカード出勤・退勤に貼付け　　";
@@ -143,7 +144,7 @@ btnTime.onclick = async () => {
         alert("勤務時間処理エラー");
     }
 };
-if (!isTimeCard) {
+if (!isTimeCard && !isDBRecord && !isDBTaskForm) {
     document.body.appendChild(btnTime);
 }
 /*document.body.appendChild(btnTime);*/
@@ -437,10 +438,6 @@ document.body.appendChild(btnCheck);
         btn.onclick=()=>panel.remove();
 
         panel.appendChild(btn);
-        document.body.appendChild(panel);
-    }
-
-})();
         document.body.appendChild(panel);
     }
 
